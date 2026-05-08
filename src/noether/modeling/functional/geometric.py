@@ -517,7 +517,14 @@ def knn_pytorch(
             y_b = torch.nn.functional.normalize(y_b, p=2, dim=-1)
             dist = 1 - torch.mm(y_b, x_b.t())
         else:
-            dist = torch.cdist(y_b, x_b, compute_mode="donot_use_mm_for_euclid_dist")
+            # donot_use_mm_for_euclid_dist hits CUDA kernel grid-size limits for
+            # large N; fall back to mm-based mode on CUDA/HIP.
+            compute_mode = (
+                "donot_use_mm_for_euclid_dist"
+                if x_b.device.type == "cpu"
+                else "use_mm_for_euclid_dist_if_necessary"
+            )
+            dist = torch.cdist(y_b, x_b, compute_mode=compute_mode)
 
         k_b = min(k, x_b.size(0))
         _, idx = dist.topk(k=k_b, dim=1, largest=False)

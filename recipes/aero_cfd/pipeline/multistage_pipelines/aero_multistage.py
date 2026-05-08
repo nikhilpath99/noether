@@ -12,6 +12,8 @@ from noether.data.pipeline.sample_processors import (
     ConcatTensorSampleProcessor,
     DuplicateKeysSampleProcessor,
     PointSamplingSampleProcessor,
+    FieldGradientWeightSampleProcessor,
+    ImportancePointSamplingSampleProcessor,
     RenameKeysSampleProcessor,
     SupernodeSamplingSampleProcessor,
 )
@@ -315,13 +317,27 @@ class AeroMultistagePipeline(MultiStagePipeline):
             "At least one of num_volume_points or num_surface_points must be greater than 0."
         )
         sample_processors = [
-            PointSamplingSampleProcessor(
+            # Volume: compute gradient weights, then importance-sample
+            FieldGradientWeightSampleProcessor(
+                position_item=DataKeys.VOLUME_POS,
+                field_items=list(self.volume_targets),
+                weight_key="volume_importance_weights",
+            ),
+            ImportancePointSamplingSampleProcessor(
                 items=self.volume_sampling_items,
+                weight_item="volume_importance_weights",
                 num_points=self.num_volume_points,
                 seed=self.seed,
             ),
-            PointSamplingSampleProcessor(
+            # Surface: compute gradient weights, then importance-sample
+            FieldGradientWeightSampleProcessor(
+                position_item=DataKeys.SURFACE_POS,
+                field_items=list(self.surface_targets),
+                weight_key="surface_importance_weights",
+            ),
+            ImportancePointSamplingSampleProcessor(
                 items=self.surface_sampling_items,
+                weight_item="surface_importance_weights",
                 num_points=self.num_surface_points,
                 seed=self.seed,
             ),
@@ -355,13 +371,29 @@ class AeroMultistagePipeline(MultiStagePipeline):
             }
             return [
                 DuplicateKeysSampleProcessor(key_map=quey_keymap),
-                PointSamplingSampleProcessor(
+                # Surface queries: compute gradient weights, then importance-sample
+                FieldGradientWeightSampleProcessor(
+                    position_item=DataKeys.as_query(DataKeys.SURFACE_POS),
+                    field_items=[DataKeys.as_query(t) for t in self.surface_targets],
+                    weight_key="surface_query_importance_weights",
+                ),
+                ImportancePointSamplingSampleProcessor(
                     items=self.surface_query_items,
+                    weight_item="surface_query_importance_weights",
                     num_points=self.num_surface_queries,
                     seed=self.seed,
                 ),
-                PointSamplingSampleProcessor(
-                    items=self.volume_query_items, num_points=self.num_volume_queries, seed=self.seed
+                # Volume queries: compute gradient weights, then importance-sample
+                FieldGradientWeightSampleProcessor(
+                    position_item=DataKeys.as_query(DataKeys.VOLUME_POS),
+                    field_items=[DataKeys.as_query(t) for t in self.volume_targets],
+                    weight_key="volume_query_importance_weights",
+                ),
+                ImportancePointSamplingSampleProcessor(
+                    items=self.volume_query_items,
+                    weight_item="volume_query_importance_weights",
+                    num_points=self.num_volume_queries,
+                    seed=self.seed,
                 ),
             ]
 

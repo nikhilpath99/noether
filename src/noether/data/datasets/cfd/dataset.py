@@ -4,7 +4,7 @@ import torch
 
 from noether.core.schemas.dataset import DatasetBaseConfig
 from noether.data import Dataset, with_normalizers
-from noether.data.datasets.cfd.caeml.filemap import FileMap
+from noether.core.schemas.filemap import FileMap
 
 
 class AeroDataset(Dataset):
@@ -88,3 +88,37 @@ class AeroDataset(Dataset):
     def getitem_surface_normals(self, idx: int) -> torch.Tensor:
         """Retrieve surface normal vectors."""
         return self._load(idx=idx, filename=self.filemap.surface_normals)  # type: ignore[arg-type]
+
+    def getitem_volume_importance_weights(self, idx: int) -> torch.Tensor:
+        """Retrieve pre-computed gradient importance weights for volume points (N,)."""
+        return self._load(idx=idx, filename=self.filemap.volume_importance_weights)  # type: ignore[arg-type]
+
+    def getitem_surface_importance_weights(self, idx: int) -> torch.Tensor:
+        """Retrieve pre-computed gradient importance weights for surface points (N,)."""
+        return self._load(idx=idx, filename=self.filemap.surface_importance_weights)  # type: ignore[arg-type]
+
+    def getitem_design_parameters(self, idx: int) -> torch.Tensor:
+        """Retrieve design / boundary-condition parameters tensor."""
+        return self._load(idx=idx, filename=self.filemap.design_parameters)  # type: ignore[arg-type]
+
+    def get_all_getitem_names(self) -> list[str]:
+        """Returns getitem method names, excluding loaders whose filemap entry is None."""
+        names = super().get_all_getitem_names()
+        fm = self.filemap
+        guards = {
+            "getitem_surface_position":            fm.surface_position,
+            "getitem_surface_pressure":            fm.surface_pressure,
+            "getitem_surface_friction":            fm.surface_friction,
+            "getitem_surface_normals":             fm.surface_normals,
+            "getitem_volume_position":             fm.volume_position,
+            "getitem_volume_pressure":             fm.volume_pressure,
+            "getitem_volume_velocity":             fm.volume_velocity,
+            "getitem_volume_vorticity":            fm.volume_vorticity,
+            "getitem_volume_normals":              fm.volume_normals,
+            "getitem_volume_sdf":                  fm.volume_distance_to_surface,
+            "getitem_surface_sdf":                 fm.volume_distance_to_surface,
+            "getitem_design_parameters":           fm.design_parameters,
+            "getitem_volume_importance_weights":   fm.volume_importance_weights,
+            "getitem_surface_importance_weights":  fm.surface_importance_weights,
+        }
+        return [n for n in names if guards.get(n, True) is not None]

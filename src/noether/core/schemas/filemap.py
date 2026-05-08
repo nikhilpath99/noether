@@ -35,3 +35,7 @@ class FileMap(BaseModel):
 
     # Optional design parameters file
     design_parameters: str | None = None
+
+    # Optional pre-computed gradient importance weight files
+    volume_importance_weights: str | None = None
+    surface_importance_weights: str | None = None

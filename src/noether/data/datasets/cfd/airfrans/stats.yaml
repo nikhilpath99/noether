@@ -1,0 +1,24 @@
+# AirFRANS dataset statistics — computed from the full_train split (800 simulations).
+# Position units: metres.  Pressure: Pascals.  Velocity: m/s.
+
+# Positions
+surface_pos_mean:              [0.3831, 0.0079]
+surface_pos_std:               [0.3958, 0.0334]
+volume_pos_mean:               [0.2844, 0.0112]
+volume_pos_std:                [0.5962, 0.3184]
+raw_pos_min:                   [-2.1648, -1.6456]
+raw_pos_max:                   [4.2321,   1.6213]
+
+# Pressure
+surface_pressure_mean:         [-1154.78]
+surface_pressure_std:          [4892.50]
+volume_pressure_mean:          [-448.14]
+volume_pressure_std:           [2931.82]
+
+# Velocity (volume only)
+volume_velocity_mean:          [15.6313,  8.6995]
+volume_velocity_std:           [31.6532,  28.531]
+
+# Design parameters: [velocity, aoa_deg, naca_p1, p2, p3, p4]
+inflow_design_parameters_mean: [62.116, 4.5022, 2.6836, 4.3984, 6.0924, 6.5902]
+inflow_design_parameters_std:  [17.914, 5.4403, 1.7915, 2.2238, 6.5746, 6.9615]

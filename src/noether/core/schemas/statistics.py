@@ -7,29 +7,33 @@ from pydantic import BaseModel
 
 class AeroStatsSchema(BaseModel):
     """Unified statistics dataclass for aerodynamics datasets such as AhmedML, and DrivAerML, DrivAerNet++,
-    ShapeNet-Car, and Wing."""
+    ShapeNet-Car, Wing, and AirFRANS.
+
+    Position and velocity fields accept variable-length sequences so that both
+    2-D datasets (e.g. AirFRANS) and 3-D datasets share the same schema.
+    """
 
     # Surface statistics
-    surface_domain_min: tuple[float, float, float] | None = None
-    surface_domain_max: tuple[float, float, float] | None = None
-    surface_pos_mean: tuple[float, float, float] | None = None
-    surface_pos_std: tuple[float, float, float] | None = None
-    surface_pressure_mean: tuple[float] | None = None
-    surface_pressure_std: tuple[float] | None = None
-    surface_friction_mean: tuple[float, float, float] | None = None
-    surface_friction_std: tuple[float, float, float] | None = None
+    surface_domain_min: Sequence[float] | None = None
+    surface_domain_max: Sequence[float] | None = None
+    surface_pos_mean: Sequence[float] | None = None
+    surface_pos_std: Sequence[float] | None = None
+    surface_pressure_mean: Sequence[float] | None = None
+    surface_pressure_std: Sequence[float] | None = None
+    surface_friction_mean: Sequence[float] | None = None
+    surface_friction_std: Sequence[float] | None = None
 
     # Volume statistics
-    volume_pos_mean: tuple[float, float, float] | None = None
-    volume_pos_std: tuple[float, float, float] | None = None
-    volume_pressure_mean: tuple[float] | None = None
-    volume_pressure_std: tuple[float] | None = None
-    volume_velocity_mean: tuple[float, float, float] | None = None
-    volume_velocity_std: tuple[float, float, float] | None = None
-    volume_vorticity_mean: tuple[float, float, float] | None = None
-    volume_vorticity_std: tuple[float, float, float] | None = None
-    volume_vorticity_logscale_mean: tuple[float, float, float] | None = None
-    volume_vorticity_logscale_std: tuple[float, float, float] | None = None
+    volume_pos_mean: Sequence[float] | None = None
+    volume_pos_std: Sequence[float] | None = None
+    volume_pressure_mean: Sequence[float] | None = None
+    volume_pressure_std: Sequence[float] | None = None
+    volume_velocity_mean: Sequence[float] | None = None
+    volume_velocity_std: Sequence[float] | None = None
+    volume_vorticity_mean: Sequence[float] | None = None
+    volume_vorticity_std: Sequence[float] | None = None
+    volume_vorticity_logscale_mean: Sequence[float] | None = None
+    volume_vorticity_logscale_std: Sequence[float] | None = None
     volume_vorticity_magnitude_mean: float | None = None
     volume_vorticity_magnitude_std: float | None = None
     volume_domain_min: tuple[float, float, float] | None = None
@@ -50,5 +54,5 @@ class AeroStatsSchema(BaseModel):
     geometry_design_parameters_std: Sequence[float] | None = None
 
     # raw position statistics
-    raw_pos_min: tuple[float] | None = None
-    raw_pos_max: tuple[float] | None = None
+    raw_pos_min: Sequence[float] | None = None
+    raw_pos_max: Sequence[float] | None = None

@@ -10,6 +10,8 @@ from .position_normalization import PositionNormalizationSampleProcessor
 from .rename_keys import RenameKeysSampleProcessor
 from .replace_key import ReplaceKeySampleProcessor
 from .supernode_sampling import SupernodeSamplingSampleProcessor
+from .field_gradient_weight import FieldGradientWeightSampleProcessor
+from .importance_point_sampling import ImportancePointSamplingSampleProcessor
 
 __all__ = [
     "DropOutliersSampleProcessor",
@@ -22,4 +24,6 @@ __all__ = [
     "SupernodeSamplingSampleProcessor",
     "ConcatTensorSampleProcessor",
     "DefaultTensorSampleProcessor",
+    "FieldGradientWeightSampleProcessor",
+    "ImportancePointSamplingSampleProcessor",
 ]
