@@ -110,6 +110,7 @@ class AeroDataset(Dataset):
             "getitem_surface_pressure":            fm.surface_pressure,
             "getitem_surface_friction":            fm.surface_friction,
             "getitem_surface_normals":             fm.surface_normals,
+            "getitem_surface_area":                fm.surface_area,
             "getitem_volume_position":             fm.volume_position,
             "getitem_volume_pressure":             fm.volume_pressure,
             "getitem_volume_velocity":             fm.volume_velocity,
@@ -122,3 +123,7 @@ class AeroDataset(Dataset):
             "getitem_surface_importance_weights":  fm.surface_importance_weights,
         }
         return [n for n in names if guards.get(n, True) is not None]
+
+    def getitem_surface_area(self, idx: int) -> torch.Tensor:
+        """Retrieve surface cell areas."""
+        return self._load(idx=idx, filename=self.filemap.surface_area)  # type: ignore[arg-type]

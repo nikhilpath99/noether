@@ -172,11 +172,6 @@ class PeriodicCallback(CallbackBase):
         self.every_n_samples = callback_config.every_n_samples
         self.batch_size = callback_config.batch_size
 
-        if not (type(self).after_update == PeriodicCallback.after_update):
-            raise AssertionError("Children shouldn't override 'after_update'")
-        if not (type(self).after_epoch == PeriodicCallback.after_epoch):
-            raise AssertionError("Children shouldn't override 'after_epoch'")
-
     def __str__(self):
         return f"{type(self).__name__}({self.get_interval_string_verbose()})"
 
@@ -550,6 +545,7 @@ class PeriodicDataIteratorCallback(PeriodicCallback, metaclass=ABCMeta):
         checkpoint_writer: CheckpointWriter,
         metric_property_provider: MetricPropertyProvider,
         name: str | None = None,
+        development: bool = False,
     ):
         """
 
@@ -579,7 +575,8 @@ class PeriodicDataIteratorCallback(PeriodicCallback, metaclass=ABCMeta):
         )
         self.dataset_key = callback_config.dataset_key
         self.total_data_time = torch.tensor(0.0)
-        self.sampler_config = self._sampler_config_from_key(key=self.dataset_key)
+        if not development:
+            self.sampler_config = self._sampler_config_from_key(key=self.dataset_key)
 
     def _sampler_config_from_key(
         self, key: str | None, properties: set[str] | None = None, max_size: int | None = None
@@ -680,7 +677,12 @@ class PeriodicDataIteratorCallback(PeriodicCallback, metaclass=ABCMeta):
         # iterate
         data_times = []
         results = []
-        pbar_ctor = NoopTqdm if not sys.stdout.isatty() or not is_rank0() else tqdm
+        pbar_ctor: type[tqdm | NoopTqdm] = tqdm
+        if not sys.stdout.isatty() or not is_rank0():
+            self.logger.info(
+                f"{self} is iterating over {local_dataset_len} samples ({num_batches} batches) from {self.dataset_key}"
+            )
+            pbar_ctor = NoopTqdm
         for _ in pbar_ctor(iterable=range(num_batches), desc=f"{self} on {self.dataset_key}", unit="b"):
             with Stopwatch() as data_sw:
                 batch = next(data_iter)

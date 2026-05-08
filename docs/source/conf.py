@@ -16,6 +16,14 @@ project = "Noether Framework"
 author = "Emmi AI"
 copyright = f"{datetime.now():%Y}, {author}"
 
+# SEO: page titles rendered as "<page> - Noether Framework" and used in the
+# <title> tag. `html_short_title` is used by some themes for the sidebar/nav.
+html_title = "Noether Framework Documentation"
+html_short_title = "Noether"
+
+# SEO: declare document language for crawlers and assistive tech.
+language = "en"
+
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
@@ -25,6 +33,8 @@ extensions = [
     "sphinx_autodoc_typehints",
     "autoapi.extension",  # <-- use AutoAPI
     "sphinx_copybutton",  # for "copy" buttons on code blocks
+    "sphinx_sitemap",  # SEO: generate sitemap.xml
+    "sphinxext.opengraph",  # SEO: Open Graph + Twitter card meta tags
     # Optional if you want Markdown pages:
     # Optional if you want CLI docs:
     # "sphinx_click",
@@ -211,9 +221,45 @@ exclude_patterns = [
     "**/*.md",
 ]
 html_static_path = ["_static"]
-html_css_files = ["emmi_docs_theme.css"]
+html_css_files = [
+    "emmi_docs_theme.css",
+    "https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css",
+]
 html_js_files = ["force_light_theme.js"]
 html_logo = "_static/Emmi_AI_logo_black.svg"  # this works
+
+# --- SEO -------------------------------------------------------------------
+# Canonical base URL: used by sphinx-sitemap for sitemap.xml and emitted as
+# <link rel="canonical"> on every page to prevent duplicate-content penalties.
+html_baseurl = os.environ.get("DOCS_BASEURL", "https://noether-docs.emmi.ai/")
+
+# Expose robots.txt and sitemap.xml at the site root (served from _static/).
+html_extra_path = ["_static/robots.txt"]
+
+# sphinx-sitemap: one URL per HTML page, no language/version suffixes.
+sitemap_url_scheme = "{link}"
+sitemap_filename = "sitemap.xml"
+
+# sphinxext-opengraph: Open Graph + Twitter card metadata for rich link
+# previews on Google, LinkedIn, X, Slack, etc.
+ogp_site_url = html_baseurl
+ogp_site_name = "Noether Framework Documentation"
+ogp_type = "website"
+ogp_image = html_baseurl.rstrip("/") + "/_static/Emmi_AI_logo_black.svg"
+ogp_image_alt = "Noether: A PyTorch-based Framework for Engineering AI"
+ogp_enable_meta_description = True
+ogp_description_length = 200
+ogp_social_cards = {"enable": False}  # requires matplotlib; keep off by default
+# Only truly global tags here. Per-page `<meta name="description">` /
+# `<meta name="keywords">` belong in each page's `.. meta::` directive so
+# crawlers see a page-specific SERP snippet instead of a duplicated default.
+ogp_custom_meta_tags = [
+    '<meta name="twitter:card" content="summary_large_image" />',
+    '<meta name="twitter:site" content="@emmi_ai" />',
+    '<meta name="robots" content="index, follow" />',
+]
+# ---------------------------------------------------------------------------
+
 # This doesn't work, not sure how to make it light/dark mode agnostic yet:
 # if isinstance(html_theme_options["logo"], dict):
 #     html_theme_options["logo"].update({
@@ -226,9 +272,11 @@ import doctest
 
 # Imports packages for doctest setup, so they don't have to be imported in every code snippet
 # Add repo root to import path for doctest, so that imports from the tutorial code snippets work without needing to install the package
+AERO_CFD_SRC = os.path.join(ROOT, "recipes", "aero_cfd", "src")
 doctest_global_setup = f"""
 import sys
 sys.path.insert(0, r'{ROOT}')
+sys.path.insert(0, r'{AERO_CFD_SRC}')
 import torch
 """
 
@@ -261,7 +309,24 @@ def skip_handler(app, what, name, obj, skip, options):
     return skip
 
 
+def phosphor_role(name, rawtext, text, lineno, inliner, options=None, content=None):
+    """Inline role for Phosphor icons: ``:ph:`icon-name```.
+
+    Renders ``<i class="ph ph-icon-name" aria-hidden="true"></i>``. The Phosphor CSS is
+    loaded via ``html_css_files`` above. See https://phosphoricons.com for the icon list.
+    """
+    from docutils import nodes
+
+    icon_name = text.strip()
+    html = f'<i class="ph ph-{icon_name}" aria-hidden="true"></i>'
+    return [nodes.raw("", html, format="html")], []
+
+
 def setup(app):
+    from docutils.parsers.rst import roles
+
+    roles.register_local_role("ph", phosphor_role)
+
     # Only connect the skip handler if AutoAPI is enabled (i.e. not for doctest builds)
     if "autoapi.extension" in extensions:
         app.connect("autoapi-skip-member", skip_handler)
